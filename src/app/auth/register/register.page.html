@@ -26,27 +26,24 @@
       </div>
     }
 
-    <form class="mt-8 space-y-4" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
-      <div>
-        <label for="name" class="block text-sm font-medium text-zinc-300 mb-1.5">Full Name</label>
-        <input id="name" type="text" formControlName="name" required class="input-field" placeholder="John Doe">
-      </div>
-      <div>
-        <label for="email-address" class="block text-sm font-medium text-zinc-300 mb-1.5">Email address</label>
-        <input id="email-address" type="email" formControlName="email" required class="input-field" placeholder="name@company.com">
-      </div>
-      <div>
-        <label for="password" class="block text-sm font-medium text-zinc-300 mb-1.5">Password</label>
-        <input id="password" type="password" formControlName="password" required class="input-field" placeholder="••••••••">
-      </div>
-      <div>
-        <label for="password_confirmation" class="block text-sm font-medium text-zinc-300 mb-1.5">Confirm Password</label>
-        <input id="password_confirmation" type="password" formControlName="password_confirmation" required class="input-field" placeholder="••••••••">
-      </div>
-      <div>
-        <label for="site-code" class="block text-sm font-medium text-zinc-300 mb-1.5">Site Code <span class="text-zinc-500">(Optional)</span></label>
-        <input id="site-code" type="text" formControlName="site_code" class="input-field" placeholder="Site Code">
-      </div>
+    <ng-container *ngIf="registerAllowed; else noSiteCode">
+      <form class="mt-8 space-y-4" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+        <div>
+          <label for="name" class="block text-sm font-medium text-zinc-300 mb-1.5">Full Name</label>
+          <input id="name" type="text" formControlName="name" required class="input-field" placeholder="John Doe" />
+        </div>
+        <div>
+          <label for="email-address" class="block text-sm font-medium text-zinc-300 mb-1.5">Email address</label>
+          <input id="email-address" type="email" formControlName="email" required class="input-field" placeholder="name@company.com" />
+        </div>
+        <div>
+          <label for="password" class="block text-sm font-medium text-zinc-300 mb-1.5">Password</label>
+          <input id="password" type="password" formControlName="password" required class="input-field" placeholder="••••••••" />
+        </div>
+        <div>
+          <label for="password_confirmation" class="block text-sm font-medium text-zinc-300 mb-1.5">Confirm Password</label>
+          <input id="password_confirmation" type="password" formControlName="password_confirmation" required class="input-field" placeholder="••••••••" />
+        </div>
 
       <div class="pt-4">
         <button type="submit" [disabled]="registerForm.invalid || isLoading()" class="btn-primary">
@@ -69,5 +66,12 @@
         </a>
       </div>
     </form>
+    </ng-container>
+
+    <ng-template #noSiteCode>
+      <div class="mt-8 text-center text-sm text-amber-300 bg-amber-900/20 border border-amber-700 rounded-lg p-4">
+        Site code is required to register. Pass <code>?site_code=1</code> once and se mantendrá en <code>sessionStorage</code> para futuros accesos.
+      </div>
+    </ng-template>
   </div>
 </div>

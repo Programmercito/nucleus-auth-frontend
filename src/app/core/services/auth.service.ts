@@ -1,6 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, throwError } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface User {
   id: number;
@@ -13,8 +14,8 @@ export interface User {
 })
 export class AuthService {
   private readonly http = inject(HttpClient);
-  // Default Laravel backend URL
-  private readonly apiUrl = 'http://localhost:8000';
+  // Backend API URL from environment config (fallback a localhost si no está configurado)
+  private readonly apiUrl = environment.apiUrl || 'http://127.0.0.1:8000';
 
   // State using signals
   currentUser = signal<User | null>(null);
