@@ -55,13 +55,18 @@ export class RegisterPage implements OnInit {
   }
 
   onSubmit() {
-    if (!this.registerAllowed || !this.registerForm.valid || !this.siteCode) {
-      this.error.set('Complete todos los campos válidos y proporciona site_code en la URL');
+    if (!this.siteCode) {
+      this.error.set('Site code is required in the URL or sessionStorage.');
+      return;
+    }
+
+    if (!this.registerForm.valid) {
+      this.error.set('Complete todos los campos válidos antes de continuar.');
       return;
     }
 
     if (this.registerForm.value.password !== this.registerForm.value.password_confirmation) {
-      this.authService.error.set('Passwords do not match');
+      this.error.set('Passwords do not match');
       return;
     }
 
