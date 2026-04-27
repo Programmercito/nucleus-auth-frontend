@@ -1,7 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
 
 export interface User {
   id: number;
@@ -14,8 +13,6 @@ export interface User {
 })
 export class AuthService {
   private readonly http = inject(HttpClient);
-  // Backend API URL from environment config (fallback a localhost si no está configurado)
-  private readonly apiUrl = environment.apiUrl;
 
   // State using signals
   currentUser = signal<User | null>(null);
@@ -25,9 +22,9 @@ export class AuthService {
   // CSRF cookie and credentials are handled by the CSRF interceptor.
   login(credentials: any): Observable<any> {
     this.isLoading.set(true);
-    this.error.set(null);
+    this.error.set(null); 
     return new Observable(observer => {
-      const sub = this.http.post(`${this.apiUrl}/login`, credentials, { withCredentials: true }).subscribe({
+      const sub = this.http.post(`/api/login`, credentials, { withCredentials: true }).subscribe({
         next: (res: any) => {
           this.currentUser.set(res.user);
           this.isLoading.set(false);
@@ -48,7 +45,7 @@ export class AuthService {
     this.isLoading.set(true);
     this.error.set(null);
     return new Observable(observer => {
-      const sub = this.http.post(`${this.apiUrl}/register`, userData, { withCredentials: true }).subscribe({
+      const sub = this.http.post(`/api/register`, userData, { withCredentials: true }).subscribe({
         next: (res: any) => {
           this.currentUser.set(res.user);
           this.isLoading.set(false);
@@ -67,7 +64,7 @@ export class AuthService {
 
   logout(): Observable<any> {
     return new Observable(observer => {
-      const sub = this.http.post(`${this.apiUrl}/logout`, {}, { withCredentials: true }).subscribe({
+      const sub = this.http.post(`/api/logout`, {}, { withCredentials: true }).subscribe({
         next: res => {
           this.currentUser.set(null);
           observer.next(res);
@@ -83,7 +80,7 @@ export class AuthService {
     this.isLoading.set(true);
     this.error.set(null);
     return new Observable(observer => {
-      const sub = this.http.post(`${this.apiUrl}/change-password`, data, { withCredentials: true }).subscribe({
+      const sub = this.http.post(`/api/change-password`, data, { withCredentials: true }).subscribe({
         next: res => {
           this.isLoading.set(false);
           observer.next(res);

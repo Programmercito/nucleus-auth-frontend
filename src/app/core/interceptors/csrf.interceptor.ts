@@ -7,18 +7,21 @@ import {
   HttpRequest,
 } from '@angular/common/http';
 import { Observable, switchMap, tap } from 'rxjs';
-import { environment } from '../../../environments/environment';
 
 @Injectable()
 export class CsrfInterceptor implements HttpInterceptor {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = environment.apiUrl;
   private csrfInitialized = false;
 
+  private getXsrfTokenFromCookie(): string | null {
+    const match = document.cookie.match(/(^|;)\s*XSRF-TOKEN=([^;]*)/);
+    return match ? decodeURIComponent(match[2]) : null;
+  }
+
   intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
-    const csrfUrl = `${this.apiUrl}/sanctum/csrf-cookie`;
+    const csrfUrl = `/api/sanctum/csrf-cookie`;
     const isCsrfRequest = req.url === csrfUrl;
-    const isApiRequest = req.url.startsWith(this.apiUrl);
+    const isApiRequest = req.url.startsWith('/api') || isCsrfRequest;
 
     if (!isApiRequest) {
       return next.handle(req);
@@ -26,17 +29,29 @@ export class CsrfInterceptor implements HttpInterceptor {
 
     const requestWithCredentials = req.clone({ withCredentials: true });
 
+    const attachXsrfHeader = (request: HttpRequest<unknown>): HttpRequest<unknown> => {
+      const token = this.getXsrfTokenFromCookie();
+      return token
+        ? request.clone({ headers: request.headers.set('X-XSRF-TOKEN', token) })
+        : request;
+    };
+
     if (isCsrfRequest) {
       return next.handle(requestWithCredentials);
     }
 
+    const requestWithXsrf = attachXsrfHeader(requestWithCredentials);
+
     if (this.csrfInitialized) {
-      return next.handle(requestWithCredentials);
+      return next.handle(requestWithXsrf);
     }
 
     return this.http.get(csrfUrl, { withCredentials: true }).pipe(
       tap(() => this.csrfInitialized = true),
-      switchMap(() => next.handle(requestWithCredentials))
+      switchMap(() => {
+        const freshRequest = attachXsrfHeader(req.clone({ withCredentials: true }));
+        return next.handle(freshRequest);
+      })
     );
   }
 }
