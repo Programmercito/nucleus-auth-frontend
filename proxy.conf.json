@@ -3,6 +3,9 @@
     "target": "http://localhost:8000",
     "secure": false,
     "changeOrigin": true,
+    "cookieDomainRewrite": "",
+    "cookiePathRewrite": "/",
+    "xfwd": true,
     "logLevel": "info"
   }
 }

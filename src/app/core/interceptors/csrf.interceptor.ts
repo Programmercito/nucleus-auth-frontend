@@ -18,6 +18,11 @@ export class CsrfInterceptor implements HttpInterceptor {
     return match ? decodeURIComponent(match[2]) : null;
   }
 
+  private attachXsrfHeader(request: HttpRequest<unknown>): HttpRequest<unknown> {
+    const token = this.getXsrfTokenFromCookie();
+    return token ? request.clone({ headers: request.headers.set('X-XSRF-TOKEN', token) }) : request;
+  }
+
   intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     const csrfUrl = `/api/sanctum/csrf-cookie`;
     const isCsrfRequest = req.url === csrfUrl;
@@ -29,28 +34,19 @@ export class CsrfInterceptor implements HttpInterceptor {
 
     const requestWithCredentials = req.clone({ withCredentials: true });
 
-    const attachXsrfHeader = (request: HttpRequest<unknown>): HttpRequest<unknown> => {
-      const token = this.getXsrfTokenFromCookie();
-      return token
-        ? request.clone({ headers: request.headers.set('X-XSRF-TOKEN', token) })
-        : request;
-    };
-
     if (isCsrfRequest) {
       return next.handle(requestWithCredentials);
     }
 
-    const requestWithXsrf = attachXsrfHeader(requestWithCredentials);
-
     if (this.csrfInitialized) {
-      return next.handle(requestWithXsrf);
+      return next.handle(this.attachXsrfHeader(requestWithCredentials));
     }
 
     return this.http.get(csrfUrl, { withCredentials: true }).pipe(
       tap(() => this.csrfInitialized = true),
       switchMap(() => {
-        const freshRequest = attachXsrfHeader(req.clone({ withCredentials: true }));
-        return next.handle(freshRequest);
+        const freshRequest = req.clone({ withCredentials: true });
+        return next.handle(this.attachXsrfHeader(freshRequest));
       })
     );
   }
