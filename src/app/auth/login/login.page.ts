@@ -2,14 +2,12 @@ import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
-import { HttpClientModule } from '@angular/common/http';
-import { catchError, of, switchMap } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, HttpClientModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './login.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -65,33 +63,22 @@ export class LoginPage implements OnInit {
       site_code: this.siteCode,
     };
 
-    this.authService.getCSRFToken().pipe(
-      catchError((err: any) => {
-        const errorMessage = err?.status === 0
-          ? 'Cannot connect to backend. Make sure API server is running at http://localhost:8000'
-          : 'Failed to get CSRF token';
-        this.error.set(errorMessage);
-        console.error(errorMessage, err);
-        return of(null);
-      }),
-      switchMap(() => this.authService.login(payload).pipe(
-        catchError((err: any) => {
-          this.error.set(err.error?.message || 'Login failed');
-          console.error('Login failed', err);
-          return of(null);
-        })
-      ))
-    ).subscribe(result => {
-      if (!result) return;
-      if (this.redirectUrl) {
-        const incoming = this.redirectUrl.trim();
-        if (incoming.startsWith('http://') || incoming.startsWith('https://')) {
-          window.location.href = incoming;
+    this.authService.login(payload).subscribe({
+      next: () => {
+        if (this.redirectUrl) {
+          const incoming = this.redirectUrl.trim();
+          if (incoming.startsWith('http://') || incoming.startsWith('https://')) {
+            window.location.href = incoming;
+          } else {
+            this.router.navigateByUrl(incoming);
+          }
         } else {
-          this.router.navigateByUrl(incoming);
+          this.router.navigate(['/']);
         }
-      } else {
-        this.router.navigate(['/']);
+      },
+      error: (err: any) => {
+        this.error.set(err.error?.message || 'Login failed');
+        console.error('Login failed', err);
       }
     });
   }

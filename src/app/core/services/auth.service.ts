@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, catchError, throwError } from 'rxjs';
+import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export interface User {
@@ -15,68 +15,87 @@ export interface User {
 export class AuthService {
   private readonly http = inject(HttpClient);
   // Backend API URL from environment config (fallback a localhost si no está configurado)
-  private readonly apiUrl = environment.apiUrl || 'http://127.0.0.1:8000';
+  private readonly apiUrl = environment.apiUrl;
 
   // State using signals
   currentUser = signal<User | null>(null);
   isLoading = signal<boolean>(false);
   error = signal<string | null>(null);
 
-  // CSRF Cookie needs to be fetched before auth requests
-  getCSRFToken(): Observable<any> {
-    return this.http.get(`${this.apiUrl}/sanctum/csrf-cookie`);
-  }
-
+  // CSRF cookie and credentials are handled by the CSRF interceptor.
   login(credentials: any): Observable<any> {
     this.isLoading.set(true);
     this.error.set(null);
-    return this.http.post(`${this.apiUrl}/login`, credentials).pipe(
-      tap((res: any) => {
-        this.currentUser.set(res.user);
-        this.isLoading.set(false);
-      }),
-      catchError(err => {
-        this.isLoading.set(false);
-        this.error.set(err.error?.message || 'Login failed');
-        return throwError(() => err);
-      })
-    );
+    return new Observable(observer => {
+      const sub = this.http.post(`${this.apiUrl}/login`, credentials, { withCredentials: true }).subscribe({
+        next: (res: any) => {
+          this.currentUser.set(res.user);
+          this.isLoading.set(false);
+          observer.next(res);
+          observer.complete();
+        },
+        error: err => {
+          this.isLoading.set(false);
+          this.error.set(err.error?.message || 'Login failed');
+          observer.error(err);
+        }
+      });
+      return () => sub.unsubscribe();
+    });
   }
 
   register(userData: any): Observable<any> {
     this.isLoading.set(true);
     this.error.set(null);
-    return this.http.post(`${this.apiUrl}/register`, userData).pipe(
-      tap((res: any) => {
-        this.currentUser.set(res.user);
-        this.isLoading.set(false);
-      }),
-      catchError(err => {
-        this.isLoading.set(false);
-        this.error.set(err.error?.message || 'Registration failed');
-        return throwError(() => err);
-      })
-    );
+    return new Observable(observer => {
+      const sub = this.http.post(`${this.apiUrl}/register`, userData, { withCredentials: true }).subscribe({
+        next: (res: any) => {
+          this.currentUser.set(res.user);
+          this.isLoading.set(false);
+          observer.next(res);
+          observer.complete();
+        },
+        error: err => {
+          this.isLoading.set(false);
+          this.error.set(err.error?.message || 'Registration failed');
+          observer.error(err);
+        }
+      });
+      return () => sub.unsubscribe();
+    });
   }
 
   logout(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/logout`, {}).pipe(
-      tap(() => {
-        this.currentUser.set(null);
-      })
-    );
+    return new Observable(observer => {
+      const sub = this.http.post(`${this.apiUrl}/logout`, {}, { withCredentials: true }).subscribe({
+        next: res => {
+          this.currentUser.set(null);
+          observer.next(res);
+          observer.complete();
+        },
+        error: err => observer.error(err)
+      });
+      return () => sub.unsubscribe();
+    });
   }
 
   changePassword(data: any): Observable<any> {
     this.isLoading.set(true);
     this.error.set(null);
-    return this.http.post(`${this.apiUrl}/change-password`, data).pipe(
-      tap(() => this.isLoading.set(false)),
-      catchError(err => {
-        this.isLoading.set(false);
-        this.error.set(err.error?.message || 'Failed to change password');
-        return throwError(() => err);
-      })
-    );
+    return new Observable(observer => {
+      const sub = this.http.post(`${this.apiUrl}/change-password`, data, { withCredentials: true }).subscribe({
+        next: res => {
+          this.isLoading.set(false);
+          observer.next(res);
+          observer.complete();
+        },
+        error: err => {
+          this.isLoading.set(false);
+          this.error.set(err.error?.message || 'Failed to change password');
+          observer.error(err);
+        }
+      });
+      return () => sub.unsubscribe();
+    });
   }
 }

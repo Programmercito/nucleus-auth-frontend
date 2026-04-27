@@ -2,14 +2,12 @@ import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
-import { HttpClientModule } from '@angular/common/http';
-import { catchError, of, switchMap } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, HttpClientModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './register.page.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -72,33 +70,22 @@ export class RegisterPage implements OnInit {
       site_code: this.siteCode,
     };
 
-    this.authService.getCSRFToken().pipe(
-      catchError((err: any) => {
-        const errorMessage = err?.status === 0
-          ? 'Cannot connect to backend. Make sure API server is running at http://localhost:8000'
-          : 'Failed to get CSRF token';
-        this.error.set(errorMessage);
-        console.error(errorMessage, err);
-        return of(null);
-      }),
-      switchMap(() => this.authService.register(payload).pipe(
-        catchError((err: any) => {
-          this.error.set(err.error?.message || 'Registration failed');
-          console.error('Registration failed', err);
-          return of(null);
-        })
-      ))
-    ).subscribe(result => {
-      if (!result) return;
-      if (this.redirectUrl) {
-        const incoming = this.redirectUrl.trim();
-        if (incoming.startsWith('http://') || incoming.startsWith('https://')) {
-          window.location.href = incoming;
+    this.authService.register(payload).subscribe({
+      next: () => {
+        if (this.redirectUrl) {
+          const incoming = this.redirectUrl.trim();
+          if (incoming.startsWith('http://') || incoming.startsWith('https://')) {
+            window.location.href = incoming;
+          } else {
+            this.router.navigateByUrl(incoming);
+          }
         } else {
-          this.router.navigateByUrl(incoming);
+          this.router.navigate(['/']);
         }
-      } else {
-        this.router.navigate(['/']);
+      },
+      error: (err: any) => {
+        this.error.set(err.error?.message || 'Registration failed');
+        console.error('Registration failed', err);
       }
     });
   }
