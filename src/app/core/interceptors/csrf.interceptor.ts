@@ -41,7 +41,7 @@ export class CsrfInterceptor implements HttpInterceptor {
   private refreshCsrfCookie(): Observable<unknown> {
     return this.http.get(this.csrfUrl, { withCredentials: true });
   }
-
+ 
   intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     const isCsrfRequest = req.url === this.csrfUrl;
     const isApiRequest = req.url.startsWith('/api') || isCsrfRequest;
