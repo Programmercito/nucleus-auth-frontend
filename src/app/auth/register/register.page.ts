@@ -77,16 +77,7 @@ export class RegisterPage implements OnInit {
 
     this.authService.register(payload).subscribe({
       next: () => {
-        if (this.redirectUrl) {
-          const incoming = this.redirectUrl.trim();
-          if (incoming.startsWith('http://') || incoming.startsWith('https://')) {
-            window.location.href = incoming;
-          } else {
-            this.router.navigateByUrl(incoming);
-          }
-        } else {
-          this.router.navigate(['/']);
-        }
+        this.router.navigate(['/auth/login'], { queryParams: { registered: '1' } });
       },
       error: (err: any) => {
         this.error.set(err.error?.message || 'Registration failed');

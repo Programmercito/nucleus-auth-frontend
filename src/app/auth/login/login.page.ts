@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
@@ -28,6 +28,7 @@ export class LoginPage implements OnInit {
 
   isLoading = this.authService.isLoading;
   error = this.authService.error;
+  successMessage = signal<string | null>(null);
 
   ngOnInit() {
     const params = this.route.snapshot.queryParamMap;
@@ -49,6 +50,10 @@ export class LoginPage implements OnInit {
     } else {
       this.loginAllowed = false;
       this.error.set('Site code is required in query parameter ?site_code=<value>');
+    }
+
+    if (params.get('registered') === '1') {
+      this.successMessage.set('Account created successfully. Please sign in.');
     }
   }
 
