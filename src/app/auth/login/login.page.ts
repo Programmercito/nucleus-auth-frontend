@@ -64,17 +64,14 @@ export class LoginPage implements OnInit {
     };
 
     this.authService.login(payload).subscribe({
-      next: () => {
+      next: (data) => {
+        let url= data.sso_url;
         if (this.redirectUrl) {
-          const incoming = this.redirectUrl.trim();
-          if (incoming.startsWith('http://') || incoming.startsWith('https://')) {
-            window.location.href = incoming;
-          } else {
-            this.router.navigateByUrl(incoming);
-          }
-        } else {
-          this.router.navigate(['/']);
+          url += `&redirect=${encodeURIComponent(this.redirectUrl)}`;
         }
+        sessionStorage.setItem('redirect_url', url);
+        sessionStorage.setItem('token', data.jwt);
+        this.router.navigate(['/auth/redirect']);
       },
       error: (err: any) => {
         this.error.set(err.error?.message || 'Login failed');

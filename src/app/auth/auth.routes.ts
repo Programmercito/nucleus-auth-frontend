@@ -14,6 +14,10 @@ export const AUTH_ROUTES: Routes = [
     loadComponent: () => import('./change-password/change-password.page').then(m => m.ChangePasswordPage)
   },
   {
+    path: 'redirect',
+    loadComponent: () => import('./redirect/redirect.component').then(m => m.RedirectComponent)
+  },
+  {
     path: '',
     redirectTo: 'login',
     pathMatch: 'full'
