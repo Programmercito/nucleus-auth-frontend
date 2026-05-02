@@ -61,6 +61,7 @@ export class RegisterPage implements OnInit {
     }
 
     if (!this.registerForm.valid) {
+      this.registerForm.markAllAsTouched();
       this.error.set('Complete todos los campos válidos antes de continuar.');
       return;
     }

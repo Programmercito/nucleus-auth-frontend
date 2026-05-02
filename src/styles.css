@@ -1,3 +1,64 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import 'tailwindcss';
+
+/* ─── THEME ─────────────────────────────────────────────────────────────────
+   Light professional theme. Change hue (250 = indigo) to retheme the app.
+   ─────────────────────────────────────────────────────────────────────────── */
+@theme {
+  /* Primary: indigo — change hue 250 → e.g. 220=blue, 160=green, 25=orange */
+  --color-primary-50:  oklch(0.97 0.025 250);
+  --color-primary-100: oklch(0.93 0.055 250);
+  --color-primary-200: oklch(0.86 0.10  250);
+  --color-primary-300: oklch(0.77 0.15  250);
+  --color-primary-400: oklch(0.66 0.19  250);
+  --color-primary-500: oklch(0.55 0.22  250);
+  --color-primary-600: oklch(0.47 0.22  250);
+  --color-primary-700: oklch(0.40 0.20  250);
+  --color-primary-800: oklch(0.32 0.17  250);
+  --color-primary-900: oklch(0.25 0.13  250);
+  --color-primary-950: oklch(0.16 0.09  250);
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ─── BASE ────────────────────────────────────────────────────────────────── */
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-800 antialiased;
+  }
+}
+
+/* ─── COMPONENTS ─────────────────────────────────────────────────────────── */
+@layer components {
+
+  /* Input */
+  .input-field {
+    @apply w-full rounded-lg border border-slate-200 bg-white
+           px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400
+           outline-none ring-0
+           transition-all duration-150
+           focus:border-primary-400 focus:ring-2 focus:ring-primary-400/20
+           hover:border-slate-300;
+  }
+  .input-field.ng-invalid.ng-touched {
+    @apply border-red-400 focus:ring-red-400/20;
+  }
+
+  /* Primary button */
+  .btn-primary {
+    @apply relative w-full rounded-lg px-5 py-2.5
+           bg-primary-600 text-white text-sm font-semibold tracking-wide
+           shadow-sm shadow-primary-600/20
+           transition-all duration-150
+           hover:bg-primary-500 hover:shadow-md hover:shadow-primary-500/25 hover:-translate-y-px
+           active:scale-[0.99] active:bg-primary-700 active:shadow-sm
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2
+           disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-sm;
+  }
+
+  /* Field validation error */
+  .field-error {
+    @apply mt-1.5 text-xs text-red-500 flex items-center gap-1;
+  }
+}
