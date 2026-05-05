@@ -72,7 +72,7 @@ export class LoginPage implements OnInit {
       next: (data) => {
         let url= data.sso_url;
         if (this.redirectUrl) {
-          url += `&redirect=${encodeURIComponent(this.redirectUrl)}`;
+          url += `?redirect=${encodeURIComponent(this.redirectUrl)}`;
         }
         sessionStorage.setItem('redirect_url', url);
         sessionStorage.setItem('token', data.jwt);
